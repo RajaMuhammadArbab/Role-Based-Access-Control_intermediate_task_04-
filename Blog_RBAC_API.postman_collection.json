@@ -1,0 +1,172 @@
+{
+  "info": {
+    "name": "Blog RBAC API",
+    "_postman_id": "12345678-90ab-cdef-1234-567890abcdef",
+    "description": "Postman collection for testing Role-Based Access Blog API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000" },
+    { "key": "admin_token", "value": "" },
+    { "key": "editor_token", "value": "" },
+    { "key": "viewer_token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"editor1\",\n  \"password\": \"EditorPass123!\",\n  \"email\": \"editor1@example.com\",\n  \"role\": \"editor\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/register/"
+          }
+        },
+        {
+          "name": "Login (Get Token)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"editor1\",\n  \"password\": \"EditorPass123!\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/token/"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"<PUT_REFRESH_TOKEN_HERE>\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/token/refresh/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Posts",
+      "item": [
+        {
+          "name": "List Posts",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{viewer_token}}" }],
+            "url": "{{base_url}}/api/posts/"
+          }
+        },
+        {
+          "name": "Create Post (Editor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{editor_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"My Post\",\n  \"content\": \"Hello World\"\n}"
+            },
+            "url": "{{base_url}}/api/posts/"
+          }
+        },
+        {
+          "name": "Update Own Post (Editor)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{editor_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Title\",\n  \"content\": \"Updated content\"\n}"
+            },
+            "url": "{{base_url}}/api/posts/1/"
+          }
+        },
+        {
+          "name": "Delete Own Post (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{editor_token}}" }],
+            "url": "{{base_url}}/api/posts/1/"
+          }
+        },
+        {
+          "name": "Editor Try Update Admin Post (Should Fail)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{editor_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Not allowed\"\n}"
+            },
+            "url": "{{base_url}}/api/posts/2/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users (Admin Only)",
+      "item": [
+        {
+          "name": "List Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/api/users/"
+          }
+        },
+        {
+          "name": "Delete User (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/api/users/3/"
+          }
+        },
+        {
+          "name": "List Users (Editor - Forbidden)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{editor_token}}" }],
+            "url": "{{base_url}}/api/users/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Cases",
+      "item": [
+        {
+          "name": "Invalid Token",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer INVALIDTOKEN" }],
+            "url": "{{base_url}}/api/posts/"
+          }
+        },
+        {
+          "name": "No Token",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/posts/"
+          }
+        }
+      ]
+    }
+  ]
+}
